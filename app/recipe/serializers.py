@@ -6,7 +6,17 @@ from rest_framework import serializers
 from core.models import (
     Recipe,
     Tag,
+    Ingridient,
 )
+
+
+class IngridientSerializer(serializers.ModelSerializer):
+    """Serializer for ingridients."""
+
+    class Meta:
+        model = Ingridient
+        fields = ['id', 'name']
+        read_only_fields = ['id']
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -42,7 +52,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         tags = validated_data.pop('tags', [])
         recipe = Recipe.objects.create(**validated_data)
         self._get_or_create_tags(tags, recipe)
-        
+
         return recipe
 
     def update(self, instance, validated_data):
