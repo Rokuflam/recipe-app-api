@@ -8,17 +8,17 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from core.models import Ingridient
+from core.models import Ingredient
 
-from recipe.serializers import IngridientSerializer
-
-
-INGRIDIENTS_URL = reverse('recipe:ingridient-list')
+from recipe.serializers import IngredientSerializer
 
 
-def detail_url(ingridient_id):
-    """Create and return a ingridient detail URL."""
-    return reverse('recipe:ingridient-detail', args=[ingridient_id])
+INGREDIENTS_URL = reverse('recipe:ingredient-list')
+
+
+def detail_url(ingredient_id):
+    """Create and return an ingredient detail URL."""
+    return reverse('recipe:ingredient-detail', args=[ingredient_id])
 
 
 def create_user(email='user@example.com', password='testpass123'):
@@ -26,80 +26,80 @@ def create_user(email='user@example.com', password='testpass123'):
     return get_user_model().objects.create_user(email, password)
 
 
-class PublicIngridientsApiTests(TestCase):
-    """Test unauthenticated API reqeusts."""
+class PublicIngredientsApiTests(TestCase):
+    """Test unauthenticated API requests."""
 
     def setUp(self):
         self.client = APIClient()
 
     def test_auth_required(self):
-        """Test auth is required for retrieving ingridients."""
-        res = self.client.get(INGRIDIENTS_URL)
+        """Test auth is required for retrieving ingredients."""
+        res = self.client.get(INGREDIENTS_URL)
 
         self.assertEqual(res.status_code, status.HTTP_401_UNAUTHORIZED)
 
 
-class PrivateIngridientsApiTests(TestCase):
-    """Test authenticated API reqeusts."""
+class PrivateIngredientsApiTests(TestCase):
+    """Test authenticated API requests."""
 
     def setUp(self):
         self.user = create_user()
         self.client = APIClient()
         self.client.force_authenticate(self.user)
 
-    def test_retrieve_ingridients(self):
-        """Test retrieving a list of ingridients."""
-        Ingridient.objects.create(user=self.user, name='Kale')
-        Ingridient.objects.create(user=self.user, name='Vanilla')
+    def test_retrieve_ingredients(self):
+        """Test retrieving a list of ingredients."""
+        Ingredient.objects.create(user=self.user, name='Kale')
+        Ingredient.objects.create(user=self.user, name='Vanilla')
 
-        res = self.client.get(INGRIDIENTS_URL)
+        res = self.client.get(INGREDIENTS_URL)
 
-        ingridients = Ingridient.objects.all().order_by('-name')
-        serializer = IngridientSerializer(ingridients, many=True)
+        ingredients = Ingredient.objects.all().order_by('-name')
+        serializer = IngredientSerializer(ingredients, many=True)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(res.data, serializer.data)
 
-    def test_ingridients_limited_to_user(self):
-        """Test list of ingridients is limited to authenticated user."""
+    def test_ingredients_limited_to_user(self):
+        """Test list of ingredients is limited to authenticated user."""
         user2 = create_user(email='user2@example.com')
-        Ingridient.objects.create(user=user2, name='Orange')
-        ingridient = Ingridient.objects.create(
+        Ingredient.objects.create(user=user2, name='Orange')
+        ingredient = Ingredient.objects.create(
             user=self.user,
             name='Coffee',
         )
 
-        res = self.client.get(INGRIDIENTS_URL)
+        res = self.client.get(INGREDIENTS_URL)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(len(res.data), 1)
-        self.assertEqual(res.data[0]['name'], ingridient.name)
-        self.assertEqual(res.data[0]['id'], ingridient.id)
+        self.assertEqual(res.data[0]['name'], ingredient.name)
+        self.assertEqual(res.data[0]['id'], ingredient.id)
 
-    def test_update_ingridient(self):
-        """Test updating an ingridient."""
-        ingridient = Ingridient.objects.create(
+    def test_update_ingredient(self):
+        """Test updating an ingredient."""
+        ingredient = Ingredient.objects.create(
             user=self.user,
             name='Apple',
         )
 
         payload = {'name': 'Apple'}
 
-        url = detail_url(ingridient.id)
+        url = detail_url(ingredient.id)
         res = self.client.patch(url, payload)
 
         self.assertEqual(res.status_code, status.HTTP_200_OK)
-        ingridient.refresh_from_db()
-        self.assertEqual(ingridient.name, payload['name'])
+        ingredient.refresh_from_db()
+        self.assertEqual(ingredient.name, payload['name'])
 
-    def test_delete_ingridient(self):
-        """Test deleting an ingridient."""
-        ingridient = Ingridient.objects.create(
+    def test_delete_ingredient(self):
+        """Test deleting an ingredient."""
+        ingredient = Ingredient.objects.create(
             user=self.user,
             name='Pepper',
         )
-        url = detail_url(ingridient.id)
+        url = detail_url(ingredient.id)
         res = self.client.delete(url)
 
         self.assertEqual(res.status_code, status.HTTP_204_NO_CONTENT)
-        ingridients = Ingridient.objects.filter(user=self.user)
-        self.assertFalse(ingridients.exists())
+        ingredients = Ingredient.objects.filter(user=self.user)
+        self.assertFalse(ingredients.exists())

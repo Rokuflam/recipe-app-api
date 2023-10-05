@@ -6,15 +6,15 @@ from rest_framework import serializers
 from core.models import (
     Recipe,
     Tag,
-    Ingridient,
+    Ingredient,
 )
 
 
-class IngridientSerializer(serializers.ModelSerializer):
-    """Serializer for ingridients."""
+class IngredientSerializer(serializers.ModelSerializer):
+    """Serializer for ingredients."""
 
     class Meta:
-        model = Ingridient
+        model = Ingredient
         fields = ['id', 'name']
         read_only_fields = ['id']
 
@@ -31,13 +31,13 @@ class TagSerializer(serializers.ModelSerializer):
 class RecipeSerializer(serializers.ModelSerializer):
     """Serializer for recipes."""
     tags = TagSerializer(many=True, required=False)
-    ingridients = IngridientSerializer(many=True, required=False)
+    ingredients = IngredientSerializer(many=True, required=False)
 
     class Meta:
         model = Recipe
         fields = [
             'id', 'title', 'time_minutes', 'price', 'link', 'tags',
-            'ingridients',
+            'ingredients',
         ]
         read_only_fields = ['id']
 
@@ -51,23 +51,23 @@ class RecipeSerializer(serializers.ModelSerializer):
             )
             recipe.tags.add(tag_obj)
 
-    def _get_or_create_ingridients(self, ingridients, recipe):
-        """Handle getting or creating ingridients as needed."""
+    def _get_or_create_ingredients(self, ingredients, recipe):
+        """Handle getting or creating ingredients as needed."""
         auth_user = self.context['request'].user
-        for ingridient in ingridients:
-            ingridient_obj, create = Ingridient.objects.get_or_create(
+        for ingredient in ingredients:
+            ingredient_obj, create = Ingredient.objects.get_or_create(
                 user=auth_user,
-                **ingridient
+                **ingredient
             )
-            recipe.ingridients.add(ingridient_obj)
+            recipe.ingredients.add(ingredient_obj)
 
     def create(self, validated_data):
         """Create a recipe."""
         tags = validated_data.pop('tags', [])
-        ingridients = validated_data.pop('ingridients', [])
+        ingredients = validated_data.pop('ingredients', [])
         recipe = Recipe.objects.create(**validated_data)
         self._get_or_create_tags(tags, recipe)
-        self._get_or_create_ingridients(ingridients, recipe)
+        self._get_or_create_ingredients(ingredients, recipe)
 
         return recipe
 
@@ -78,10 +78,10 @@ class RecipeSerializer(serializers.ModelSerializer):
             instance.tags.clear()
             self._get_or_create_tags(tags, instance)
 
-        ingridients = validated_data.pop('ingridients', None)
-        if ingridients is not None:
-            instance.ingridients.clear()
-            self._get_or_create_ingridients(ingridients, instance)
+        ingredients = validated_data.pop('ingredients', None)
+        if ingredients is not None:
+            instance.ingredients.clear()
+            self._get_or_create_ingredients(ingredients, instance)
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
@@ -94,4 +94,14 @@ class RecipeDetailSerializer(RecipeSerializer):
     """Serializer for recipe detail view."""
 
     class Meta(RecipeSerializer.Meta):
-        fields = RecipeSerializer.Meta.fields + ['description']
+        fields = RecipeSerializer.Meta.fields + ['description', 'image']
+
+
+class RecipeImageSerializer(serializers.ModelSerializer):
+    """Serializer for uploading images to recipes."""
+
+    class Meta:
+        model = Recipe
+        fields = ['id', 'image']
+        read_only_fields = ['id']
+        extra_kwargs = {'image': {'required': True}}
