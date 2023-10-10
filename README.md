@@ -84,7 +84,7 @@ Feel free to contribute to this project by opening issues or pull requests. Foll
 
 ### License
 
-Here no License, so feel free to use it.
+Here is no License, so feel free to use it.
 
 ### Acknowledgments
 
