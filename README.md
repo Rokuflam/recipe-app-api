@@ -15,8 +15,8 @@ Follow these steps to set up and run the project locally using Docker:
 Clone this repository to your local machine:
 
 ```bash
-git clone https://github.com/your-username/drf-project-template.git
-cd drf-project-template
+git clone https://github.com/Rokuflam/recipe-app-api.git
+cd recipe-app-api
 ```
 
 
@@ -50,14 +50,15 @@ This will launch the Django development server and PostgreSQL database in Docker
 In a separate terminal, run database migrations:
 
 ```bash
-docker-compose exec web python manage.py migrate
+docker-compose run --rm app sh -c "python manage.py migrate"
 ```
 ### Run Tests
 To run the tests using TDD:
 
 ```bash
-docker-compose exec web python manage.py test
+docker-compose run --rm app sh -c "python manage.py test && flake8"
 ```
+
 ### Access the OpenAI API
 The API will be available at http://localhost:8000/api/docs/.
 
